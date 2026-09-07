@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIAB WhatsApp Automation Engine | School-in-a-Box</title>
+    <meta name="description" content="Automated zero-touch WhatsApp monitoring and 2-way pedagogical follow-up system for 575+ School-in-a-Box deployments.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="theme-dark">
+    <!-- App Container -->
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <i data-lucide="box"></i>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-title">SIAB Auto</span>
+                    <span class="brand-subtitle">WhatsApp Engine v2.0</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="dashboard" id="nav-dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Executive Overview</span>
+                </button>
+                <button class="nav-item" data-tab="schools" id="nav-schools">
+                    <i data-lucide="school"></i>
+                    <span>School Fleet (575+)</span>
+                </button>
+                <button class="nav-item" data-tab="automation" id="nav-automation">
+                    <i data-lucide="cpu"></i>
+                    <span>3-Step Engine</span>
+                    <span class="badge-pulse">Auto</span>
+                </button>
+                <button class="nav-item" data-tab="simulator" id="nav-simulator">
+                    <i data-lucide="message-square"></i>
+                    <span>WhatsApp Simulator</span>
+                    <span class="badge-green">2-Way</span>
+                </button>
+                <button class="nav-item" data-tab="curriculum-tickets" id="nav-curriculum">
+                    <i data-lucide="book-open"></i>
+                    <span>Curriculum & Tickets</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="connection-status">
+                    <span class="status-dot online"></span>
+                    <div class="status-info">
+                        <span class="status-label">Telemetric Feed</span>
+                        <span class="status-sub" id="ws-status-text">Connected Live</span>
+                    </div>
+                </div>
+                <div class="cron-reminder">
+                    <i data-lucide="calendar-clock"></i>
+                    <span>Next Auto-Run: <strong>Fri 3:00 PM</strong></span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Navigation Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 class="page-title" id="page-title">Executive Telemetry Overview</h1>
+                    <p class="page-subtitle" id="page-subtitle">Monitoring 240,000+ students across 575 active School-in-a-Box locations</p>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-secondary" id="btn-quick-preview">
+                        <i data-lucide="eye"></i>
+                        <span>Dry Run Preview</span>
+                    </button>
+                    <button class="btn btn-primary" id="btn-quick-run-engine">
+                        <i data-lucide="zap"></i>
+                        <span>Run Friday Engine Now</span>
+                    </button>
+                    <button class="btn-icon theme-toggle" id="btn-theme-toggle" title="Toggle Light/Dark Theme">
+                        <i data-lucide="sun" class="sun-icon"></i>
+                        <i data-lucide="moon" class="moon-icon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB 1: EXECUTIVE DASHBOARD -->
+            <section class="tab-content active" id="tab-dashboard">
+                <!-- KPI Stat Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card glass-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Total Students Reached</span>
+                            <div class="kpi-icon-wrap icon-blue">
+                                <i data-lucide="users"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="kpi-students">240,000+</div>
+                        <div class="kpi-footer text-success">
+                            <i data-lucide="trending-up"></i>
+                            <span>Scaling to 5,000 schools</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card glass-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Active Deployments</span>
+                            <div class="kpi-icon-wrap icon-purple">
+                                <i data-lucide="map-pin"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="kpi-schools">575</div>
+                        <div class="kpi-footer text-muted">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Across 25 Districts</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card glass-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Weekly Smart Class Hours</span>
+                            <div class="kpi-icon-wrap icon-emerald">
+                                <i data-lucide="clock"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="kpi-hours">7,842 hrs</div>
+                        <div class="kpi-footer text-success">
+                            <i data-lucide="sparkles"></i>
+                            <span>High engagement logged</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card glass-card">
+                        <div class="kpi-header">
+                            <span class="kpi-title">Sync Health Rate</span>
+                            <div class="kpi-icon-wrap icon-amber">
+                                <i data-lucide="activity"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-value" id="kpi-sync-health">84.8%</div>
+                        <div class="kpi-footer text-amber">
+                            <i data-lucide="alert-triangle"></i>
+                            <span id="kpi-offline-count">87 boxes require power check</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3-Bucket Performance Distribution Banners -->
+                <div class="bucket-summary-row">
+                    <div class="bucket-pill bucket-great" id="pill-doing-great">
+                        <div class="bucket-pill-icon"><i data-lucide="trophy"></i></div>
+                        <div class="bucket-pill-content">
+                            <span class="pill-label">Bucket 1: Doing Great (≥12h)</span>
+                            <span class="pill-count" id="count-great">333 Schools</span>
+                            <span class="pill-sub">Nudge: Celebrations & PhET / Toys From Trash</span>
+                        </div>
+                    </div>
+                    <div class="bucket-pill bucket-nudge" id="pill-needs-nudge">
+                        <div class="bucket-pill-icon"><i data-lucide="compass"></i></div>
+                        <div class="bucket-pill-content">
+                            <span class="pill-label">Bucket 2: Needs a Nudge (&lt;4h)</span>
+                            <span class="pill-count" id="count-nudge">155 Schools</span>
+                            <span class="pill-sub">Nudge: Gentle supportive activity check-ins</span>
+                        </div>
+                    </div>
+                    <div class="bucket-pill bucket-offline" id="pill-device-offline">
+                        <div class="bucket-pill-icon"><i data-lucide="wifi-off"></i></div>
+                        <div class="bucket-pill-content">
+                            <span class="pill-label">Bucket 3: Device Offline (&gt;3 days)</span>
+                            <span class="pill-count" id="count-offline">87 Schools</span>
+                            <span class="pill-sub">Nudge: Proactive power/cable diagnosis</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-grid">
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <div>
+                                <h3 class="chart-title">3-Bucket School Allocation</h3>
+                                <p class="chart-subtitle">Weekly telemetry segmentation for automated follow-ups</p>
+                            </div>
+                            <span class="badge-neutral">Auto-Categorized</span>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="bucketChart" height="240"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card glass-card">
+                        <div class="chart-header">
+                            <div>
+                                <h3 class="chart-title">Subject Telemetry Utilization</h3>
+                                <p class="chart-subtitle">Active classroom hours across offline e-Learning apps</p>
+                            </div>
+                            <span class="badge-neutral">575 Boxes</span>
+                        </div>
+                        <div class="chart-body">
+                            <canvas id="subjectChart" height="240"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Automated Nudges Stream -->
+                <div class="recent-nudges-section glass-card">
+                    <div class="section-header">
+                        <div>
+                            <h3 class="section-title">Recent Automated WhatsApp Dispatches</h3>
+                            <p class="section-subtitle">Real-time outbound nudges crafted with human tone</p>
+                        </div>
+                        <button class="btn btn-sm btn-secondary" onclick="app.switchTab('schools')">View All Schools</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table" id="table-recent-nudges">
+                            <thead>
+                                <tr>
+                                    <th>School & District</th>
+                                    <th>Bucket</th>
+                                    <th>Custom Message Preview</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-recent-nudges">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: SCHOOL FLEET MONITOR -->
+            <section class="tab-content" id="tab-schools">
+                <div class="fleet-controls glass-card">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="input-search-schools" placeholder="Search school name, code, teacher, or phone...">
+                    </div>
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label>Bucket Filter:</label>
+                            <select id="select-bucket-filter" class="form-select">
+                                <option value="all">All Buckets (575)</option>
+                                <option value="doing_great">🌟 Doing Great</option>
+                                <option value="needs_nudge">👋 Needs a Nudge</option>
+                                <option value="device_offline">⚠️ Device Offline</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>District:</label>
+                            <select id="select-district-filter" class="form-select">
+                                <option value="all">All Districts</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Sort By:</label>
+                            <select id="select-sort-filter" class="form-select">
+                                <option value="id">Default ID</option>
+                                <option value="usage_desc">Weekly Usage (High to Low)</option>
+                                <option value="usage_asc">Weekly Usage (Low to High)</option>
+                                <option value="sync_asc">Oldest Synced (Needs Attention)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schools Table -->
+                <div class="schools-table-wrap glass-card">
+                    <div class="table-responsive">
+                        <table class="data-table" id="table-schools-fleet">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>School Name & Location</th>
+                                    <th>Teacher Contact</th>
+                                    <th>Weekly Usage</th>
+                                    <th>Last Synced</th>
+                                    <th>Bucket</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-schools-fleet">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="pagination-bar">
+                        <span class="pagination-info" id="pagination-info">Showing 1-20 of 575 schools</span>
+                        <div class="pagination-buttons">
+                            <button class="btn btn-sm btn-secondary" id="btn-prev-page" disabled><i data-lucide="chevron-left"></i> Prev</button>
+                            <span class="page-number-display" id="page-num-display">1 / 29</span>
+                            <button class="btn btn-sm btn-secondary" id="btn-next-page">Next <i data-lucide="chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: 3-STEP AUTOMATION ENGINE -->
+            <section class="tab-content" id="tab-automation">
+                <!-- Strategy Overview Graphic -->
+                <div class="engine-steps-card glass-card">
+                    <div class="engine-step">
+                        <div class="step-num">1</div>
+                        <div class="step-details">
+                            <h4>Monitor Data</h4>
+                            <p>Taps directly into remote monitoring telemetry for usage hours and sync timestamps.</p>
+                        </div>
+                    </div>
+                    <div class="step-divider"><i data-lucide="arrow-right"></i></div>
+                    <div class="engine-step">
+                        <div class="step-num">2</div>
+                        <div class="step-details">
+                            <h4>Logic Script</h4>
+                            <p>Sorts schools into 3 distinct buckets: Doing Great, Needs a Nudge, Device Offline.</p>
+                        </div>
+                    </div>
+                    <div class="step-divider"><i data-lucide="arrow-right"></i></div>
+                    <div class="engine-step">
+                        <div class="step-num">3</div>
+                        <div class="step-details">
+                            <h4>Trigger WhatsApp API</h4>
+                            <p>Dispatches friendly, personalized human-tone nudges with tailored curriculum modules.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="automation-grid">
+                    <!-- Threshold & Schedule Configuration -->
+                    <div class="config-card glass-card">
+                        <div class="card-header-styled">
+                            <i data-lucide="sliders"></i>
+                            <h3>Bucket & Schedule Rules</h3>
+                        </div>
+                        <form id="form-rules-config" class="rules-form">
+                            <div class="form-group">
+                                <label for="input-thresh-great">
+                                    <span>Doing Great Threshold:</span>
+                                    <strong id="val-thresh-great">≥ 12.0 hrs/week</strong>
+                                </label>
+                                <input type="range" id="input-thresh-great" min="6" max="25" step="0.5" value="12">
+                                <small>Schools above this receive celebration & advanced PhET/Toys from Trash suggestions.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="input-thresh-nudge">
+                                    <span>Needs a Nudge Upper Limit:</span>
+                                    <strong id="val-thresh-nudge">&lt; 4.0 hrs/week</strong>
+                                </label>
+                                <input type="range" id="input-thresh-nudge" min="1" max="10" step="0.5" value="4">
+                                <small>Schools under this receive empathetic check-ins & bite-sized fun activities.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="input-thresh-offline">
+                                    <span>Device Offline Days Threshold:</span>
+                                    <strong id="val-thresh-offline">&gt; 3.0 days unsynced</strong>
+                                </label>
+                                <input type="range" id="input-thresh-offline" min="1" max="14" step="1" value="3">
+                                <small>Triggers proactive hardware & power cut troubleshooting alert.</small>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label>Automated Run Day:</label>
+                                    <select id="input-schedule-day" class="form-select">
+                                        <option value="Friday">Every Friday</option>
+                                        <option value="Monday">Every Monday</option>
+                                        <option value="Wednesday">Every Wednesday</option>
+                                    </select>
+                                </div>
+                                <div class="form-group half">
+                                    <label>Automated Run Time:</label>
+                                    <input type="time" id="input-schedule-time" class="form-input" value="15:00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>WhatsApp Gateway Provider:</label>
+                                <select id="select-whatsapp-provider" class="form-select">
+                                    <option value="simulator">Interactive Simulator / WebSocket (Default Demo)</option>
+                                    <option value="meta_cloud_api">Meta WhatsApp Cloud API (Official)</option>
+                                    <option value="twilio">Twilio WhatsApp API</option>
+                                    <option value="whatsauto_webhook">WhatsAuto / Custom Webhook Gateway</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block">
+                                <i data-lucide="save"></i>
+                                <span>Save Rules & Thresholds</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Execution Console & Live Dry-Run Preview -->
+                    <div class="execution-card glass-card">
+                        <div class="card-header-styled">
+                            <i data-lucide="terminal"></i>
+                            <h3>Automation Execution & Dispatch</h3>
+                        </div>
+                        <div class="execution-actions">
+                            <button class="btn btn-secondary" id="btn-run-preview-tab">
+                                <i data-lucide="play-circle"></i>
+                                <span>Generate Classification Preview</span>
+                            </button>
+                            <button class="btn btn-primary" id="btn-run-dispatch-tab">
+                                <i data-lucide="send"></i>
+                                <span>Execute & Dispatch All Nudges</span>
+                            </button>
+                        </div>
+
+                        <!-- Progress / Terminal Box -->
+                        <div class="terminal-box" id="terminal-box">
+                            <div class="terminal-header">
+                                <span class="terminal-dot red"></span>
+                                <span class="terminal-dot yellow"></span>
+                                <span class="terminal-dot green"></span>
+                                <span class="terminal-title">SIAB Engine Real-time Console</span>
+                            </div>
+                            <div class="terminal-body" id="terminal-logs">
+                                <div class="log-line text-muted">[System] Ready. Click 'Generate Classification Preview' or 'Execute & Dispatch' to run the 3-step engine.</div>
+                            </div>
+                        </div>
+
+                        <!-- Live Preview Table -->
+                        <div class="preview-results-wrap" id="preview-results-wrap" style="display: none;">
+                            <div class="preview-header">
+                                <h4>Classification Breakdown:</h4>
+                                <div class="preview-counts" id="preview-counts-summary"></div>
+                            </div>
+                            <div class="table-responsive small-table">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>School</th>
+                                            <th>Usage</th>
+                                            <th>Bucket</th>
+                                            <th>Message Output</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-preview-results"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: WHATSAPP MOBILE SIMULATOR & 2-WAY CHAT -->
+            <section class="tab-content" id="tab-simulator">
+                <div class="simulator-layout">
+                    <!-- Left: School Selector & Contact Card -->
+                    <div class="simulator-sidebar glass-card">
+                        <div class="card-header-styled">
+                            <i data-lucide="users"></i>
+                            <h3>Active Teacher Chats</h3>
+                        </div>
+                        <div class="simulator-search">
+                            <input type="text" id="input-sim-search" placeholder="Search teacher or school...">
+                        </div>
+                        <div class="teacher-chats-list" id="sim-teachers-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Center: Realistic Smartphone WhatsApp Mockup -->
+                    <div class="phone-frame-container">
+                        <div class="smartphone-mockup">
+                            <div class="phone-notch">
+                                <div class="camera"></div>
+                                <div class="speaker"></div>
+                            </div>
+                            <!-- WhatsApp UI Inside Phone -->
+                            <div class="whatsapp-app">
+                                <!-- WA Header -->
+                                <div class="wa-header">
+                                    <div class="wa-header-left">
+                                        <div class="wa-avatar">
+                                            <i data-lucide="user"></i>
+                                        </div>
+                                        <div class="wa-contact-info">
+                                            <span class="wa-name" id="sim-active-name">Sunita Sharma (Head Teacher)</span>
+                                            <span class="wa-sub" id="sim-active-school">Zilla Parishad High School - Pune #1</span>
+                                        </div>
+                                    </div>
+                                    <div class="wa-header-right">
+                                        <i data-lucide="phone"></i>
+                                        <i data-lucide="video"></i>
+                                        <i data-lucide="more-vertical"></i>
+                                    </div>
+                                </div>
+
+                                <!-- WA Chat Feed -->
+                                <div class="wa-chat-body" id="sim-chat-body">
+                                    <div class="wa-date-pill">TODAY</div>
+                                    <!-- Messages rendered here -->
+                                </div>
+
+                                <!-- Quick Test Reply Chips -->
+                                <div class="quick-chips-bar">
+                                    <span class="chips-title">Simulate Teacher:</span>
+                                    <button class="chip-btn" data-msg="We have a power cut in our village for 3 days, electricity line is broken.">⚡ Report Power Cut</button>
+                                    <button class="chip-btn" data-msg="The display monitor screen is not showing anything. HDMI cable looks loose.">🔧 Report Hardware Fault</button>
+                                    <button class="chip-btn" data-msg="Can you send more PhET simulations and science experiments for Grade 5?">🔬 Ask for PhET / Science</button>
+                                    <button class="chip-btn" data-msg="Thank you! The students really loved the balloon hovercraft activity!">🌟 Send Appreciation</button>
+                                </div>
+
+                                <!-- WA Input Bar -->
+                                <div class="wa-input-bar">
+                                    <button class="wa-icon-btn"><i data-lucide="smile"></i></button>
+                                    <button class="wa-icon-btn"><i data-lucide="paperclip"></i></button>
+                                    <input type="text" id="sim-input-message" class="wa-text-input" placeholder="Type a message as teacher...">
+                                    <button class="wa-send-btn" id="sim-btn-send">
+                                        <i data-lucide="send"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Live Automation & Ticket Inspector -->
+                    <div class="simulator-inspector glass-card">
+                        <div class="card-header-styled">
+                            <i data-lucide="bot"></i>
+                            <h3>2-Way Bot & Ticket Inspector</h3>
+                        </div>
+                        <div class="inspector-section">
+                            <h4>Active School Telemetry</h4>
+                            <div class="inspector-stats" id="sim-inspector-stats">
+                                <div class="stat-item"><label>Bucket:</label> <span id="insp-bucket" class="badge-great">Doing Great</span></div>
+                                <div class="stat-item"><label>Weekly Hours:</label> <span id="insp-hours">22.4 hrs</span></div>
+                                <div class="stat-item"><label>Last Synced:</label> <span id="insp-sync">4 hours ago</span></div>
+                                <div class="stat-item"><label>Device ID:</label> <span id="insp-device">SIAB-BOX-00001</span></div>
+                            </div>
+                        </div>
+
+                        <div class="inspector-section">
+                            <h4>Manual System Message</h4>
+                            <textarea id="input-manual-operator-msg" class="form-textarea" placeholder="Send custom message from SIAB Operations Desk..." rows="3"></textarea>
+                            <button class="btn btn-secondary btn-sm btn-block" id="btn-send-manual-msg">
+                                <i data-lucide="send"></i> Send as SIAB Team
+                            </button>
+                        </div>
+
+                        <div class="inspector-section">
+                            <h4>Linked Support Tickets</h4>
+                            <div id="sim-tickets-list" class="sim-tickets-container">
+                                <span class="text-muted small">No open tickets for this school.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: CURRICULUM HUB & TICKETS DESK -->
+            <section class="tab-content" id="tab-curriculum-tickets">
+                <div class="split-view-grid">
+                    <!-- Left: Offline Curriculum Library -->
+                    <div class="curriculum-col glass-card">
+                        <div class="section-header">
+                            <div>
+                                <h3 class="section-title">Offline Curriculum & Activity Catalog</h3>
+                                <p class="section-subtitle">Auto-recommended to teachers to switch up weekly activities</p>
+                            </div>
+                            <span class="badge-neutral" id="curriculum-count-badge">8 Modules</span>
+                        </div>
+                        <div class="curriculum-cards-grid" id="curriculum-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Right: Auto-Ticketing Support Desk -->
+                    <div class="tickets-col glass-card">
+                        <div class="section-header">
+                            <div>
+                                <h3 class="section-title">Support & Escalation Tickets</h3>
+                                <p class="section-subtitle">Auto-generated when teachers report power/hardware issues via WhatsApp</p>
+                            </div>
+                            <select id="select-ticket-status-filter" class="form-select form-select-sm">
+                                <option value="all">All Tickets</option>
+                                <option value="open">Open</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="resolved">Resolved</option>
+                            </select>
+                        </div>
+                        <div class="tickets-list" id="tickets-queue-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- School Detail Drawer / Modal -->
+    <div class="drawer-backdrop" id="drawer-backdrop">
+        <div class="school-drawer glass-card" id="school-drawer">
+            <div class="drawer-header">
+                <div>
+                    <h3 id="drawer-school-name">School Details</h3>
+                    <span id="drawer-school-code" class="text-muted">SIAB-MH-PUN-0001</span>
+                </div>
+                <button class="btn-icon" id="btn-close-drawer"><i data-lucide="x"></i></button>
+            </div>
+            <div class="drawer-body" id="drawer-content">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Application Script -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
