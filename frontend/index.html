@@ -161,15 +161,15 @@
                     <div class="bucket-pill bucket-great" id="pill-doing-great">
                         <div class="bucket-pill-icon"><i data-lucide="trophy"></i></div>
                         <div class="bucket-pill-content">
-                            <span class="pill-label">Bucket 1: Doing Great (≥12h)</span>
+                            <span class="pill-label">Bucket 1: Most Active (≥12h, within 7 days)</span>
                             <span class="pill-count" id="count-great">333 Schools</span>
-                            <span class="pill-sub">Nudge: Celebrations & PhET / Toys From Trash</span>
+                            <span class="pill-sub">Nudge: Celebrations &amp; PhET / Toys From Trash</span>
                         </div>
                     </div>
                     <div class="bucket-pill bucket-nudge" id="pill-needs-nudge">
                         <div class="bucket-pill-icon"><i data-lucide="compass"></i></div>
                         <div class="bucket-pill-content">
-                            <span class="pill-label">Bucket 2: Needs a Nudge (&lt;4h)</span>
+                            <span class="pill-label">Bucket 2: Active (&lt;6h, within 15 days)</span>
                             <span class="pill-count" id="count-nudge">155 Schools</span>
                             <span class="pill-sub">Nudge: Gentle supportive activity check-ins</span>
                         </div>
@@ -177,7 +177,7 @@
                     <div class="bucket-pill bucket-offline" id="pill-device-offline">
                         <div class="bucket-pill-icon"><i data-lucide="wifi-off"></i></div>
                         <div class="bucket-pill-content">
-                            <span class="pill-label">Bucket 3: Device Offline (&gt;3 days)</span>
+                            <span class="pill-label">Bucket 3: Offline (&gt;30 days unsynced)</span>
                             <span class="pill-count" id="count-offline">87 Schools</span>
                             <span class="pill-sub">Nudge: Proactive power/cable diagnosis</span>
                         </div>
@@ -203,7 +203,7 @@
                         <div class="chart-header">
                             <div>
                                 <h3 class="chart-title">Subject Telemetry Utilization</h3>
-                                <p class="chart-subtitle">Active classroom hours across offline e-Learning apps</p>
+                                <p class="chart-subtitle">8 SIAB content categories: Curriculum, Stories, Assessment, DIY/STEM, Interactive, Games, Other, Showcasing</p>
                             </div>
                             <span class="badge-neutral">575 Boxes</span>
                         </div>
@@ -247,15 +247,27 @@
                 <div class="fleet-controls glass-card">
                     <div class="search-box">
                         <i data-lucide="search"></i>
-                        <input type="text" id="input-search-schools" placeholder="Search school name, code, teacher, or phone...">
+                        <input type="text" id="input-search-schools" placeholder="Search school name, OMSERVER ID, teacher, or phone...">
                     </div>
                     <div class="filters-row">
+                        <div class="filter-group">
+                            <label>Project:</label>
+                            <select id="select-project-filter" class="form-select">
+                                <option value="all">All Projects</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>State:</label>
+                            <select id="select-state-filter" class="form-select">
+                                <option value="all">All States</option>
+                            </select>
+                        </div>
                         <div class="filter-group">
                             <label>Bucket Filter:</label>
                             <select id="select-bucket-filter" class="form-select">
                                 <option value="all">All Buckets (575)</option>
-                                <option value="doing_great">🌟 Doing Great</option>
-                                <option value="needs_nudge">👋 Needs a Nudge</option>
+                                <option value="doing_great">🌟 Most Active</option>
+                                <option value="needs_nudge">👋 Active (Needs Nudge)</option>
                                 <option value="device_offline">⚠️ Device Offline</option>
                             </select>
                         </div>
@@ -283,12 +295,15 @@
                         <table class="data-table" id="table-schools-fleet">
                             <thead>
                                 <tr>
-                                    <th>Code</th>
+                                    <th>OMSERVER ID</th>
                                     <th>School Name & Location</th>
                                     <th>Teacher Contact</th>
                                     <th>Weekly Usage</th>
                                     <th>Last Synced</th>
                                     <th>Bucket</th>
+                                    <th>POC Post</th>
+                                    <th>Innovation</th>
+                                    <th>Quiz Academy</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -348,8 +363,8 @@
                         <form id="form-rules-config" class="rules-form">
                             <div class="form-group">
                                 <label for="input-thresh-great">
-                                    <span>Doing Great Threshold:</span>
-                                    <strong id="val-thresh-great">≥ 12.0 hrs/week</strong>
+                                    <span>Most Active Threshold (usage):</span>
+                                    <strong id="val-thresh-great">≥ 12.0 hrs/week (synced within 7 days)</strong>
                                 </label>
                                 <input type="range" id="input-thresh-great" min="6" max="25" step="0.5" value="12">
                                 <small>Schools above this receive celebration & advanced PhET/Toys from Trash suggestions.</small>
@@ -357,19 +372,19 @@
 
                             <div class="form-group">
                                 <label for="input-thresh-nudge">
-                                    <span>Needs a Nudge Upper Limit:</span>
-                                    <strong id="val-thresh-nudge">&lt; 4.0 hrs/week</strong>
+                                    <span>Active/Needs Nudge Upper Limit:</span>
+                                    <strong id="val-thresh-nudge">&lt; 6.0 hrs/week (synced within 15 days)</strong>
                                 </label>
-                                <input type="range" id="input-thresh-nudge" min="1" max="10" step="0.5" value="4">
+                                <input type="range" id="input-thresh-nudge" min="1" max="10" step="0.5" value="6">
                                 <small>Schools under this receive empathetic check-ins & bite-sized fun activities.</small>
                             </div>
 
                             <div class="form-group">
                                 <label for="input-thresh-offline">
                                     <span>Device Offline Days Threshold:</span>
-                                    <strong id="val-thresh-offline">&gt; 3.0 days unsynced</strong>
+                                    <strong id="val-thresh-offline">&gt; 30.0 days unsynced</strong>
                                 </label>
-                                <input type="range" id="input-thresh-offline" min="1" max="14" step="1" value="3">
+                                <input type="range" id="input-thresh-offline" min="7" max="60" step="1" value="30">
                                 <small>Triggers proactive hardware & power cut troubleshooting alert.</small>
                             </div>
 

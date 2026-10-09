@@ -157,6 +157,7 @@ def list_schools(
     bucket: Optional[str] = None,
     district: Optional[str] = None,
     state: Optional[str] = None,
+    project: Optional[str] = None,
     page: int = 1,
     page_size: int = 20,
     sort_by: str = "id"
@@ -168,7 +169,7 @@ def list_schools(
     params = []
 
     if search:
-        conditions.append("(name LIKE ? OR school_code LIKE ? OR contact_name LIKE ? OR phone_number LIKE ?)")
+        conditions.append("(name LIKE ? OR omserver_id LIKE ? OR contact_name LIKE ? OR phone_number LIKE ?)")
         search_pattern = f"%{search}%"
         params.extend([search_pattern, search_pattern, search_pattern, search_pattern])
 
@@ -183,6 +184,10 @@ def list_schools(
     if state and state != "all":
         conditions.append("state = ?")
         params.append(state)
+
+    if project and project != "all":
+        conditions.append("project = ?")
+        params.append(project)
 
     where_clause = " AND ".join(conditions)
 
@@ -219,6 +224,8 @@ def list_schools(
             s["subjects"] = json.loads(s["subjects_json"])
         except Exception:
             s["subjects"] = {}
+        # Expose omserver_id as school_code for frontend compatibility
+        s["school_code"] = s.get("omserver_id", "")
 
     conn.close()
 
@@ -286,6 +293,24 @@ def list_districts():
     rows = cursor.fetchall()
     conn.close()
     return [{"district": r["district"], "state": r["state"]} for r in rows]
+
+@app.get("/api/projects")
+def list_projects():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT project FROM schools ORDER BY project")
+    rows = cursor.fetchall()
+    conn.close()
+    return [{"project": r["project"]} for r in rows]
+
+@app.get("/api/states")
+def list_states():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT state FROM schools ORDER BY state")
+    rows = cursor.fetchall()
+    conn.close()
+    return [{"state": r["state"]} for r in rows]
 
 # ==================== AUTOMATION ENGINE ====================
 

@@ -26,8 +26,10 @@ def get_system_config():
     
     return {
         "threshold_doing_great_hours": float(config.get("threshold_doing_great_hours", 12.0)),
-        "threshold_needs_nudge_hours": float(config.get("threshold_needs_nudge_hours", 4.0)),
-        "threshold_offline_days": float(config.get("threshold_offline_days", 3.0)),
+        "threshold_needs_nudge_hours": float(config.get("threshold_needs_nudge_hours", 6.0)),
+        "threshold_offline_days": float(config.get("threshold_offline_days", 30.0)),
+        "threshold_doing_great_sync_days": float(config.get("threshold_doing_great_sync_days", 7.0)),
+        "threshold_needs_nudge_sync_days": float(config.get("threshold_needs_nudge_sync_days", 15.0)),
         "schedule_cron": config.get("schedule_cron", "0 15 * * 5"),
         "schedule_day": config.get("schedule_day", "Friday"),
         "schedule_time": config.get("schedule_time", "15:00"),
@@ -62,7 +64,13 @@ def classify_school(school, config, curriculum_list):
     school_name = school["name"]
     district = school["district"]
 
-    # Rule evaluation
+    # Rule evaluation — PDF-specified thresholds:
+    # Offline: last synced > 30 days ago
+    # Most Active (Doing Great): synced within 7 days AND usage >= 12 hrs/week
+    # Active (Needs Nudge): synced within 15 days AND usage < 6 hrs/week
+    doing_great_sync_days = config.get("threshold_doing_great_sync_days", 7.0)
+    needs_nudge_sync_days = config.get("threshold_needs_nudge_sync_days", 15.0)
+
     if days_since_sync > config["threshold_offline_days"]:
         bucket = "device_offline"
         days_int = max(1, int(round(days_since_sync)))
@@ -79,7 +87,7 @@ def classify_school(school, config, curriculum_list):
             f"3. Has there been a power outage in {district}?\n\n"
             f"Reply 'POWER' if there is an outage, or reply here if you need technician assistance."
         )
-    elif weekly_hours >= config["threshold_doing_great_hours"]:
+    elif days_since_sync <= doing_great_sync_days and weekly_hours >= config["threshold_doing_great_hours"]:
         bucket = "doing_great"
         template_name = "doing_great_celebration"
         
@@ -93,8 +101,8 @@ def classify_school(school, config, curriculum_list):
         curriculum_suggestion = f"{tft['title']} & {phet['title']}"
         
         message_text = (
-            f"Namaste {teacher_name} ji! 🌟 Amazing week at {school_name}!\n\n"
-            f"Your smart classroom logged {weekly_hours} hours of active learning this week. The students are making tremendous progress! 🚀\n\n"
+            f"Namaste {teacher_name} ji! 🌟 Most Active this week at {school_name}!\n\n"
+            f"Your smart classroom logged {weekly_hours} hours of active learning this week — synced just {round(days_since_sync, 1)} day(s) ago. The students are making tremendous progress! 🚀\n\n"
             f"💡 Recommended activities for next week:\n"
             f"• 🔬 {tft['title']} ({tft.get('key_concept', 'Hands-on Science')})\n"
             f"• 💻 {phet['title']} (Grade {phet.get('grade_range', 'All')})\n\n"
@@ -110,7 +118,7 @@ def classify_school(school, config, curriculum_list):
         curriculum_suggestion = item["title"]
         message_text = (
             f"Namaste {teacher_name} ji! 👋 Warm greetings from the School-in-a-Box team.\n\n"
-            f"We noticed the smart class logged {weekly_hours} hours this week. We know school schedules can get very hectic with exams and administrative duties!\n\n"
+            f"We noticed the smart class logged {weekly_hours} hours this week (last synced {round(days_since_sync, 1)} day(s) ago). We know school schedules can get very hectic with exams and administrative duties!\n\n"
             f"To get the students excited next week without taking much time, try this quick 15-minute activity:\n"
             f"✨ {item['title']} - {item.get('instructions_summary', 'Easy interactive classroom activity')}\n\n"
             f"Need any help or quick activity ideas? Simply reply to this message and we're here to help!"

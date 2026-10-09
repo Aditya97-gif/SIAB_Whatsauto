@@ -204,9 +204,10 @@ def seed_database(total_schools=575):
         school_num = i + 1
         bucket = buckets[i]
         district, state = random.choice(DISTRICTS)
+        project = random.choice(["Project Alpha", "Project Beta", "Project Gamma"])
         prefix = random.choice(SCHOOL_PREFIXES)
         school_name = f"{prefix} - {district} #{school_num}"
-        school_code = f"SIAB-{state[:2].upper()}-{district[:3].upper()}-{school_num:04d}"
+        omserver_id = f"SIAB-{state[:2].upper()}-{district[:3].upper()}-{school_num:04d}"
         teacher_name = random.choice(TEACHER_NAMES)
         phone = f"+91{phone_base + school_num}"
         students_count = random.randint(120, 750)
@@ -221,60 +222,76 @@ def seed_database(total_schools=575):
             hours_ago = random.uniform(0.5, 22.0)
             last_sync = (now - timedelta(hours=hours_ago)).isoformat()
             
-            science_pct = random.randint(30, 45)
-            maths_pct = random.randint(25, 35)
-            arts_pct = random.randint(10, 20)
-            eng_pct = random.randint(10, 20)
-            phys_pct = 100 - (science_pct + maths_pct + arts_pct + eng_pct)
+            curriculum_pct = random.randint(10, 20)
+            stories_pct = random.randint(10, 20)
+            assessment_pct = random.randint(10, 20)
+            diy_stem_pct = random.randint(10, 20)
+            interactive_pct = random.randint(10, 20)
+            games_pct = random.randint(5, 10)
+            other_pct = random.randint(5, 10)
+            showcasing_pct = 100 - sum([curriculum_pct, stories_pct, assessment_pct, diy_stem_pct, interactive_pct, games_pct, other_pct])
             
         elif bucket == 'needs_nudge':
             # 0.2 to 4.5 hours weekly usage
             weekly_hours = round(random.uniform(0.2, 4.4), 1)
             smart_class_sessions = random.randint(1, 5)
-            # Synced relatively recently (0.5 to 2.5 days ago)
-            hours_ago = random.uniform(2.0, 50.0)
+            # Synced relatively recently (0.5 to 15.0 days ago)
+            hours_ago = random.uniform(2.0, 360.0)
             last_sync = (now - timedelta(hours=hours_ago)).isoformat()
             
-            science_pct = random.randint(20, 30)
-            maths_pct = random.randint(20, 30)
-            arts_pct = random.randint(10, 20)
-            eng_pct = random.randint(10, 20)
-            phys_pct = 100 - (science_pct + maths_pct + arts_pct + eng_pct)
+            curriculum_pct = random.randint(10, 15)
+            stories_pct = random.randint(10, 15)
+            assessment_pct = random.randint(10, 15)
+            diy_stem_pct = random.randint(10, 15)
+            interactive_pct = random.randint(10, 15)
+            games_pct = random.randint(10, 15)
+            other_pct = random.randint(10, 15)
+            showcasing_pct = 100 - sum([curriculum_pct, stories_pct, assessment_pct, diy_stem_pct, interactive_pct, games_pct, other_pct])
             
         else: # device_offline
             # 0 hours or minimal usage from previous cycle
             weekly_hours = round(random.uniform(0.0, 1.2), 1)
             smart_class_sessions = random.randint(0, 2)
-            # Synced 3.5 to 19 days ago
-            days_ago = random.uniform(3.5, 18.0)
+            # Synced 31 to 40 days ago
+            days_ago = random.uniform(31.0, 40.0)
             last_sync = (now - timedelta(days=days_ago)).isoformat()
             
-            science_pct = 20
-            maths_pct = 20
-            arts_pct = 20
-            eng_pct = 20
-            phys_pct = 20
+            curriculum_pct = 12
+            stories_pct = 12
+            assessment_pct = 12
+            diy_stem_pct = 12
+            interactive_pct = 12
+            games_pct = 12
+            other_pct = 12
+            showcasing_pct = 16
 
         subjects_dict = {
-            "Science": f"{science_pct}%",
-            "Maths": f"{maths_pct}%",
-            "Arts": f"{arts_pct}%",
-            "English": f"{eng_pct}%",
-            "Phys Ed": f"{max(0, phys_pct)}%"
+            "Curriculum Content": f"{curriculum_pct}%",
+            "Stories": f"{stories_pct}%",
+            "Assessment": f"{assessment_pct}%",
+            "DIY / STEM": f"{diy_stem_pct}%",
+            "Interactive": f"{interactive_pct}%",
+            "Games": f"{games_pct}%",
+            "Other Content": f"{other_pct}%",
+            "Showcasing Of School": f"{max(0, showcasing_pct)}%"
         }
+        
+        poc_post_status = random.choice(["School Doing Great", "School Needs A Nudge", "School Offline"])
+        innovation_status = random.choice(["Most Innovative", "Innovative", "Lack Of Innovation"])
+        quiz_academy_status = random.choice(["Most Active", "Active", "Inactive"])
 
         cursor.execute("""
         INSERT INTO schools (
-            school_code, name, district, state, contact_name, contact_role,
+            omserver_id, name, project, district, state, contact_name, contact_role,
             phone_number, students_count, device_id, device_model,
             last_synced_at, weekly_usage_hours, smart_class_sessions,
-            subjects_json, current_bucket, status, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            subjects_json, current_bucket, status, poc_post_status, innovation_status, quiz_academy_status, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            school_code, school_name, district, state, teacher_name, "Head Teacher",
+            omserver_id, school_name, project, district, state, teacher_name, "Head Teacher",
             phone, students_count, device_id, "SIAB-Pi-4K-v2",
             last_sync, weekly_hours, smart_class_sessions,
-            json.dumps(subjects_dict), bucket, "active", (now - timedelta(days=90)).isoformat()
+            json.dumps(subjects_dict), bucket, "active", poc_post_status, innovation_status, quiz_academy_status, (now - timedelta(days=90)).isoformat()
         ))
         school_id = cursor.lastrowid
 

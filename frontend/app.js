@@ -32,6 +32,8 @@ const app = {
         // Initial Data Load
         this.fetchDashboardStats();
         this.fetchDistricts();
+        this.fetchProjects();
+        this.fetchStates();
         this.fetchSchools(1);
         this.fetchAutomationConfig();
         this.fetchCurriculum();
@@ -191,6 +193,8 @@ const app = {
         // School Fleet Filters
         document.getElementById('input-search-schools').addEventListener('input', () => this.debounce(() => this.fetchSchools(1), 300)());
         document.getElementById('select-bucket-filter').addEventListener('change', () => this.fetchSchools(1));
+        document.getElementById('select-project-filter').addEventListener('change', () => this.fetchSchools(1));
+        document.getElementById('select-state-filter').addEventListener('change', () => this.fetchSchools(1));
         document.getElementById('select-district-filter').addEventListener('change', () => this.fetchSchools(1));
         document.getElementById('select-sort-filter').addEventListener('change', () => this.fetchSchools(1));
 
@@ -338,18 +342,18 @@ const app = {
             });
         }
 
-        // 2. Subject Bar Chart
+        // 2. Subject Bar Chart — 8 Official SIAB Categories per PDF spec
         const ctxSubject = document.getElementById('subjectChart');
         if (ctxSubject) {
             if (this.state.subjectChart) this.state.subjectChart.destroy();
             this.state.subjectChart = new Chart(ctxSubject, {
                 type: 'bar',
                 data: {
-                    labels: ['Science (PhET)', 'Maths Lab', 'Arts / Music', 'StoryWeaver', 'STEM Projects'],
+                    labels: ['Curriculum\nContent', 'Stories', 'Assessment', 'DIY / STEM', 'Interactive', 'Games', 'Other\nContent', 'Showcasing\nOf School'],
                     datasets: [{
                         label: 'Active Hours Logged',
-                        data: [2840, 2190, 1150, 980, 682],
-                        backgroundColor: ['#6366f1', '#06b6d4', '#ec4899', '#8b5cf6', '#10b981'],
+                        data: [2840, 1650, 1420, 1190, 1380, 950, 620, 480],
+                        backgroundColor: ['#6366f1', '#06b6d4', '#ec4899', '#f59e0b', '#8b5cf6', '#10b981', '#f97316', '#14b8a6'],
                         borderRadius: 6
                     }]
                 },
@@ -357,7 +361,7 @@ const app = {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: textColor } },
+                        x: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } },
                         y: { grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }, ticks: { color: textColor } }
                     },
                     plugins: {
@@ -385,11 +389,41 @@ const app = {
         }
     },
 
+    async fetchProjects() {
+        try {
+            const res = await fetch('/api/projects');
+            const data = await res.json();
+            const select = document.getElementById('select-project-filter');
+            if (select) {
+                select.innerHTML = '<option value="all">All Projects</option>' +
+                    data.map(p => `<option value="${p.project}">${p.project}</option>`).join('');
+            }
+        } catch (err) {
+            console.error("Error fetching projects:", err);
+        }
+    },
+
+    async fetchStates() {
+        try {
+            const res = await fetch('/api/states');
+            const data = await res.json();
+            const select = document.getElementById('select-state-filter');
+            if (select) {
+                select.innerHTML = '<option value="all">All States</option>' +
+                    data.map(s => `<option value="${s.state}">${s.state}</option>`).join('');
+            }
+        } catch (err) {
+            console.error("Error fetching states:", err);
+        }
+    },
+
     async fetchSchools(page = 1) {
         this.state.currentPage = page;
         const search = document.getElementById('input-search-schools')?.value || '';
         const bucket = document.getElementById('select-bucket-filter')?.value || 'all';
         const district = document.getElementById('select-district-filter')?.value || 'all';
+        const state = document.getElementById('select-state-filter')?.value || 'all';
+        const project = document.getElementById('select-project-filter')?.value || 'all';
         const sortBy = document.getElementById('select-sort-filter')?.value || 'id';
 
         const params = new URLSearchParams({
@@ -398,6 +432,8 @@ const app = {
             search: search,
             bucket: bucket,
             district: district,
+            state: state,
+            project: project,
             sort_by: sortBy
         });
 
@@ -430,7 +466,7 @@ const app = {
         if (!tbody) return;
 
         if (!schools || schools.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted" style="padding:28px;">No schools match your search or filter.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted" style="padding:28px;">No schools match your search or filter.</td></tr>`;
             return;
         }
 
@@ -438,13 +474,17 @@ const app = {
             const bucketBadge = this.getBucketBadge(s.current_bucket);
             const timeAgo = this.formatTimeAgo(s.last_synced_at);
             const isOffline = s.current_bucket === 'device_offline';
+            const pocBadge = this.getPOCPostBadge(s.poc_post_status);
+            const innovBadge = this.getInnovationBadge(s.innovation_status);
+            const quizBadge = this.getQuizAcademyBadge(s.quiz_academy_status);
 
             return `
                 <tr>
-                    <td><code class="text-muted">${s.school_code}</code></td>
+                    <td><code class="text-muted">${s.omserver_id || s.school_code}</code></td>
                     <td>
                         <strong>${s.name}</strong><br>
-                        <span class="text-muted small"><i data-lucide="map-pin" style="width:12px;display:inline;"></i> ${s.district}, ${s.state} (${s.students_count} students)</span>
+                        <span class="text-muted small"><i data-lucide="map-pin" style="width:12px;display:inline;"></i> ${s.district}, ${s.state} (${s.students_count} students)</span><br>
+                        <span class="text-muted small">Project: ${s.project}</span>
                     </td>
                     <td>
                         <strong>${s.contact_name}</strong><br>
@@ -458,6 +498,9 @@ const app = {
                         <span class="${isOffline ? 'text-danger font-weight-bold' : 'text-muted'}">${timeAgo}</span>
                     </td>
                     <td>${bucketBadge}</td>
+                    <td>${pocBadge}</td>
+                    <td>${innovBadge}</td>
+                    <td>${quizBadge}</td>
                     <td>
                         <div style="display:flex;gap:6px;">
                             <button class="btn btn-sm btn-secondary" onclick="app.openSchoolDrawer(${s.id})" title="View Telemetry Drawer">
@@ -482,10 +525,10 @@ const app = {
             this.state.config = data;
 
             document.getElementById('input-thresh-great').value = data.threshold_doing_great_hours;
-            document.getElementById('val-thresh-great').innerText = `≥ ${data.threshold_doing_great_hours} hrs/week`;
+            document.getElementById('val-thresh-great').innerText = `≥ ${data.threshold_doing_great_hours} hrs/week (synced within ${data.threshold_doing_great_sync_days || 7} days)`;
 
             document.getElementById('input-thresh-nudge').value = data.threshold_needs_nudge_hours;
-            document.getElementById('val-thresh-nudge').innerText = `< ${data.threshold_needs_nudge_hours} hrs/week`;
+            document.getElementById('val-thresh-nudge').innerText = `< ${data.threshold_needs_nudge_hours} hrs/week (synced within ${data.threshold_needs_nudge_sync_days || 15} days)`;
 
             document.getElementById('input-thresh-offline').value = data.threshold_offline_days;
             document.getElementById('val-thresh-offline').innerText = `> ${data.threshold_offline_days} days unsynced`;
@@ -967,9 +1010,30 @@ const app = {
     // ==================== UTILITIES ====================
 
     getBucketBadge(bucket) {
-        if (bucket === 'doing_great') return '<span class="badge-great">🌟 Doing Great</span>';
-        if (bucket === 'needs_nudge') return '<span class="badge-nudge">👋 Needs a Nudge</span>';
+        if (bucket === 'doing_great') return '<span class="badge-great">🌟 Most Active</span>';
+        if (bucket === 'needs_nudge') return '<span class="badge-nudge">👋 Active (Needs Nudge)</span>';
         return '<span class="badge-offline">⚠️ Device Offline</span>';
+    },
+
+    getPOCPostBadge(status) {
+        if (!status) return '<span class="badge-neutral">—</span>';
+        if (status === 'School Doing Great') return '<span class="badge-great" style="font-size:0.7rem;">✅ Doing Great</span>';
+        if (status === 'School Needs A Nudge') return '<span class="badge-nudge" style="font-size:0.7rem;">👋 Nudge</span>';
+        return '<span class="badge-offline" style="font-size:0.7rem;">⚠️ Offline</span>';
+    },
+
+    getInnovationBadge(status) {
+        if (!status) return '<span class="badge-neutral">—</span>';
+        if (status === 'Most Innovative') return '<span class="badge-great" style="font-size:0.7rem;">🏆 Most Innovative</span>';
+        if (status === 'Innovative') return '<span class="badge-nudge" style="font-size:0.7rem;">💡 Innovative</span>';
+        return '<span class="badge-offline" style="font-size:0.7rem;">📉 Low</span>';
+    },
+
+    getQuizAcademyBadge(status) {
+        if (!status) return '<span class="badge-neutral">—</span>';
+        if (status === 'Most Active') return '<span class="badge-great" style="font-size:0.7rem;">🎯 Most Active</span>';
+        if (status === 'Active') return '<span class="badge-nudge" style="font-size:0.7rem;">✓ Active</span>';
+        return '<span class="badge-offline" style="font-size:0.7rem;">💤 Inactive</span>';
     },
 
     formatBucketName(bucket) {

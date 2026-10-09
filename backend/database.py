@@ -20,8 +20,9 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS schools (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        school_code TEXT UNIQUE NOT NULL,
+        omserver_id TEXT UNIQUE NOT NULL,
         name TEXT NOT NULL,
+        project TEXT NOT NULL DEFAULT 'Default Project',
         district TEXT NOT NULL,
         state TEXT NOT NULL,
         contact_name TEXT NOT NULL,
@@ -34,8 +35,11 @@ def init_db():
         weekly_usage_hours REAL NOT NULL DEFAULT 0.0,
         smart_class_sessions INTEGER NOT NULL DEFAULT 0,
         subjects_json TEXT NOT NULL DEFAULT '{}',
-        current_bucket TEXT NOT NULL DEFAULT 'needs_nudge',
+        current_bucket TEXT NOT NULL DEFAULT 'active',
         status TEXT NOT NULL DEFAULT 'active',
+        poc_post_status TEXT DEFAULT 'School Offline',
+        innovation_status TEXT DEFAULT 'Lack Of Innovation',
+        quiz_academy_status TEXT DEFAULT 'Inactive',
         created_at TEXT NOT NULL
     )
     """)
@@ -137,8 +141,10 @@ def init_db():
     # Default configurations
     default_configs = [
         ("threshold_doing_great_hours", "12.0"),
-        ("threshold_needs_nudge_hours", "4.0"),
-        ("threshold_offline_days", "3.0"),
+        ("threshold_needs_nudge_hours", "6.0"),
+        ("threshold_offline_days", "30.0"),
+        ("threshold_doing_great_sync_days", "7.0"),
+        ("threshold_needs_nudge_sync_days", "15.0"),
         ("schedule_cron", "0 15 * * 5"), # Friday 3:00 PM
         ("schedule_day", "Friday"),
         ("schedule_time", "15:00"),
